@@ -11,7 +11,3 @@ theorem problem1 {a b : ℚ} (h1 : a - b = 4) (h2 : a * b = 1) :
 theorem problem2 {r s : ℚ} (h1 : s = 3) (h2 : r + 2 * s = -1) :
     r = -7 :=
   sorry
-
-theorem problem3 {a b m n : ℤ} (h1 : a * m + b * n = 1) (h2 : b ^ 2 = 2 * a ^ 2) :
-    (2 * a * n + b * m) ^ 2 = 2 :=
-  sorry
