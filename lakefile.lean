@@ -10,3 +10,6 @@ lean_lib AutograderTests where
 lean_exe autograder where
   root := `Main
   supportInterpreter := true
+
+require mathlib from git
+  "https://github.com/leanprover-community/mathlib4.git" @ "master"

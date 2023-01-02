@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-cp /autograder/submission/*.lean /autograder/source/Assignment.lean
-
 cd /autograder/source
 
-~/.elan/bin/lake clean && ~/.elan/bin/lake build autograder AutograderTests && ~/.elan/bin/lake exe autograder AutograderTests.Solution Assignment.lean 
+cp /autograder/submission/* /autograder/source/Assignment.lean
+
+~/.elan/bin/lake build -v autograder AutograderTests && ~/.elan/bin/lake exe autograder AutograderTests.Solution Assignment.lean

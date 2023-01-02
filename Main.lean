@@ -26,18 +26,20 @@ def usedAxiomsAreValid (sheetAxioms: Array Name) (submissionAxioms : List Name) 
   | x :: xs => if sheetAxioms.contains x then usedAxiomsAreValid sheetAxioms xs else false 
 
 def grade (sheetName : Name) (sheet submission : Environment) : IO (Array ExerciseResult) := do
-  
   let names <- IO.FS.readFile "AutograderTests/exercises.txt"
-  let mut exercise_names : HashSet Name := HashSet.empty
-  for name in (names.splitOn "\n") do 
-    exercise_names := exercise_names.insert name.toName
+  let mut exercises : HashMap Name Nat := HashMap.empty
+  for item in (names.splitOn "\n") do 
+    let values := (item.splitOn ";")
+    if values.length == 2 then
+      exercises := exercises.insert values[0]!.toName values[1]!.toNat!
 
   let some sheetMod := sheet.moduleDataOf? sheetName
     | throw <| IO.userError s!"module name {sheetName} not found"
   let mut results := #[]
 
   for name in sheetMod.constNames, constInfo in sheetMod.constants do
-    if not name.isInternal && exercise_names.contains name then
+    -- IO.println name
+    if not name.isInternal && exercises.contains name then
       let (_, sheetState) := ((CollectAxioms.collect name).run sheet).run {}
       let result ←
         -- exercise to be filled in
@@ -50,7 +52,7 @@ def grade (sheetName : Name) (sheet submission : Environment) : IO (Array Exerci
             else
               let (_, submissionState) := ((CollectAxioms.collect name).run submission).run {}
               if usedAxiomsAreValid sheetState.axioms submissionState.axioms.toList 
-                then pure { name, status := "passed", score := 1.0, output := "Passed all tests" }
+                then pure { name, status := "passed", score := (exercises.find! name).toFloat , output := "Passed all tests" }
               else 
                 pure { name, status := "failed", output := "Contains unexpected axioms", score := 0.0 }
         else
@@ -77,7 +79,7 @@ def main (args : List String) : IO Unit := do
         args := #[submission.toString, "-o", submissionOlean.toString]
       }
       if out.exitCode != 0 then
-        let result : ExerciseResult := { name := toString submission, status := "failed", output := out.stdout , score := 0.0 }
+        let result : ExerciseResult := { name := toString submission, status := "failed", output := out.stderr , score := 0.0 }
         let results : GradingResults := { tests := #[result] }
         IO.FS.writeFile "../results/results.json" (toJson results).pretty
         throw <| IO.userError s!"Lean exited with code {out.exitCode}:\n{out.stderr}"
