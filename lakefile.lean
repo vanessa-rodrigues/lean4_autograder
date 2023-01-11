@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-package autograder
+package autograder where
 
 lean_lib AutograderTests where
   globs := #[.submodules `AutograderTests]
@@ -12,4 +12,4 @@ lean_exe autograder where
   supportInterpreter := true
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "master"
+  "https://github.com/leanprover-community/mathlib4.git"

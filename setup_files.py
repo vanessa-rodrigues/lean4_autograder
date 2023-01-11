@@ -5,21 +5,24 @@ import github as github
 
 GIT_HUB_API_KEY = "YOUR_KEY"
 PRIVATE_REPO_NAME = "vanessa-rodrigues/autograder_test_instructor"
-PUBLIC_REPO_NAME = "lean_assignment"
-ASSIGNMENT_FILE_PATH = "ProblemSets/ProblemSet2.lean"
+PUBLIC_REPO_NAME = "vanessa-rodrigues/lean_assignment"
+ASSIGNMENT_FILE_PATH = "ProblemSets/ProblemSet3.lean"
 PROJECT_FILES = [".gitignore", "README.md", "lake-manifest.json", "lakefile.lean", "lean-toolchain"]
 
 def create_repo(git, original_repo, new_file):
     user = git.get_user()
-
-    new_repo = user.create_repo(PUBLIC_REPO_NAME)
     commit_message = "Assignment files"
-
-    for name in PROJECT_FILES:
-        content = original_repo.get_contents(name)
-        new_repo.create_file(name, commit_message, content.decoded_content.decode("utf-8"))
-
-    new_repo.create_file(ASSIGNMENT_FILE_PATH, commit_message, ''.join(new_file))
+    try:
+        repo = user.create_repo(PUBLIC_REPO_NAME.split('/')[1])
+        for name in PROJECT_FILES:
+            content = original_repo.get_contents(name)
+            repo.create_file(name, commit_message, content.decoded_content.decode("utf-8"))
+    
+    except github.GithubException:
+        print ("Repo already exists, commiting a new file instead")
+        repo = git.get_repo(PUBLIC_REPO_NAME)
+    
+    repo.create_file(ASSIGNMENT_FILE_PATH, commit_message, ''.join(new_file))
 
 def locate_function_signature_and_add_sorry(queue, file):
     while len(queue) > 0:
@@ -72,9 +75,8 @@ def write_exercises_file(names):
     file.close()
 
 def __main__():
-    g = github.Github(GIT_HUB_API_KEY)
-
     try:
+        g = github.Github(GIT_HUB_API_KEY)
         repo = g.get_repo(PRIVATE_REPO_NAME)
 
         content = repo.get_contents(ASSIGNMENT_FILE_PATH)

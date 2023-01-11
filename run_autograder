@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
+set -ex
+
 cd /autograder/source
 
 cp /autograder/submission/* /autograder/source/Assignment.lean
 
-~/.elan/bin/lake build -v autograder AutograderTests && ~/.elan/bin/lake exe autograder AutograderTests.Solution Assignment.lean
+~/.elan/bin/lake build autograder AutograderTests 
+
+~/.elan/bin/lake exe autograder AutograderTests.Solution Assignment.lean
