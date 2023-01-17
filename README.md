@@ -19,7 +19,7 @@ To interact with GitHub, this project uses GitHub API. Follows the steps needed 
     - **public_repo** with the name you wish to give to the public repo.
     - **assignment_path** with the path for the assignment available in the **public** repo.
 
-# Helper Scripts
+### Helper Scripts
 
 We provide a set of scripts that can help to maintain/create the autograder and repos. For using the python scripts, first install the requirements: `pip install -r requirements.txt`
 
@@ -29,6 +29,6 @@ We provide a set of scripts that can help to maintain/create the autograder and 
 
 3. **make_autograder.sh** generates the zip file to be uploaded to Gradescope.
 
-# Gradescope Container Minimum Specifications
+### Gradescope Container Minimum Specifications
 
 This project is meant to work with MathLib assignments, so for a good Gradescope performance, their container must have at least 2.0 CPU and 3.0GB RAM.
