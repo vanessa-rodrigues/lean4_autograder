@@ -1,4 +1,5 @@
 import Lean
+import Mathlib -- ensures Mathlib is compiled when the container is being uploaded
 open Lean IO System Elab Command
 
 structure ExerciseResult where
@@ -20,13 +21,19 @@ def Lean.Environment.moduleOfDecl? (decl : Name) (env : Environment) : Option Na
   let modIdx : Nat ← env.getModuleIdxFor? decl
   env.header.moduleNames[modIdx]?
 
-def usedAxiomsAreValid (sheetAxioms: Array Name) (submissionAxioms : List Name) : Bool := 
+def validAxioms : Array Name := #["Classical.choice".toName, "Quot.sound".toName, "propext".toName] 
+
+def usedAxiomsAreValid (submissionAxioms : List Name) : Bool := 
   match submissionAxioms with 
   | [] => true
-  | x :: xs => if sheetAxioms.contains x then usedAxiomsAreValid sheetAxioms xs else false 
+  | x :: xs => if validAxioms.contains x then usedAxiomsAreValid xs else false 
 
-def grade (sheetName : Name) (sheet submission : Environment) : IO (Array ExerciseResult) := do
+def gradeSubmission (sheetName : Name) (sheet submission : Environment) : IO (Array ExerciseResult) := do
   let names <- IO.FS.readFile "AutograderTests/exercises.txt"
+  
+  if names.length == 0 then 
+    throw <| IO.userError "There are no exercises annotated with points in the template, thus, the submission can't be graded."
+  
   let mut exercises : HashMap Name Nat := HashMap.empty
   for item in (names.splitOn "\n") do 
     let values := (item.splitOn ";")
@@ -38,9 +45,7 @@ def grade (sheetName : Name) (sheet submission : Environment) : IO (Array Exerci
   let mut results := #[]
 
   for name in sheetMod.constNames, constInfo in sheetMod.constants do
-    -- IO.println name
     if not name.isInternal && exercises.contains name then
-      let (_, sheetState) := ((CollectAxioms.collect name).run sheet).run {}
       let result ←
         -- exercise to be filled in
         if let some subConstInfo := submission.find? name then
@@ -51,7 +56,7 @@ def grade (sheetName : Name) (sheet submission : Environment) : IO (Array Exerci
               pure { name, status := "failed", output := "Type is different than expected", score := 0.0 }
             else
               let (_, submissionState) := ((CollectAxioms.collect name).run submission).run {}
-              if usedAxiomsAreValid sheetState.axioms submissionState.axioms.toList 
+              if usedAxiomsAreValid submissionState.axioms.toList 
                 then pure { name, status := "passed", score := (exercises.find! name).toFloat , output := "Passed all tests" }
               else 
                 pure { name, status := "failed", output := "Contains unexpected axioms", score := 0.0 }
@@ -88,9 +93,7 @@ def main (args : List String) : IO Unit := do
     catch ex =>
       errors := errors.push ex.toString
       importModules sheet.header.imports.toList {}
-  let tests ← grade sheetName sheet submissionEnv
+  let tests ← gradeSubmission sheetName sheet submissionEnv
   let results : GradingResults := { tests }
   if errors.size == 0 then
     IO.FS.writeFile "../results/results.json" (toJson results).pretty
-  unless errors.isEmpty && tests.all (fun x => x.status == "passed") do
-    Process.exit 1
