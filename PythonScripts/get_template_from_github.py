@@ -1,8 +1,6 @@
 import json
-import wget
 import re
 import os
-import github as github
 
 COMMENT_PATTERN = "^/-.*-/$"
 PROBLEM_PATTERN = "^(theorem|lemma){1}.*"
@@ -39,12 +37,8 @@ def write_exercises_file(names_and_points):
 
 def main():
     # reads config from file
-    f = open('config.json')
+    f = open('../autograder_config.json')
     config = json.load(f)
-
-    # gets public repo
-    git = github.Github(config['api_key'])
-    public_repo = git.get_repo(config['public_repo'])
 
     # removes old files if needed
     if os.path.exists(TEMPLATE_FILE):
@@ -52,9 +46,12 @@ def main():
     if os.path.exists(EXERCISES_FILE):
         os.remove(EXERCISES_FILE)
 
+    repo_name = config['public_repo'].split('/')[1]
+
     # downloads current assignment
-    content = public_repo.get_contents(config['assignment_path'])
-    wget.download(content.download_url, out = TEMPLATE_FILE)
+    os.system("git clone https://github.com/" + config['public_repo'])
+    os.system("mv " + repo_name + "/" + config['assignment_path'] + " " + TEMPLATE_FILE)
+    os.system("rm -rf " + repo_name)
 
     # creates helper file
     names_and_points = extract_exercises_names_and_points_from_template()

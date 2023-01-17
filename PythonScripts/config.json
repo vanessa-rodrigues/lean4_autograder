@@ -1,6 +1,0 @@
-{
-    "api_key": "YOUR_KEY",
-    "private_repo": "USER/REPO_NAME",
-    "public_repo": "USER/REPO_NAME",
-    "assignment_path": "ProblemSets/ProblemSet1.lean"
-}
