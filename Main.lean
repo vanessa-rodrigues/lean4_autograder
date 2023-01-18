@@ -1,5 +1,4 @@
 import Lean
-import Mathlib -- ensures Mathlib is compiled when the container is being uploaded
 open Lean IO System Elab Command
 
 structure ExerciseResult where
